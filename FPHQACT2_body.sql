@@ -40,9 +40,9 @@ CONCAT(PCLI.ANC_NO_RUE,concat(' ',PCLI.ANC_NOM_RUE))  CL_ADR_FACT, -- CONCAT(FPH
 PCLI.ANC_CODE_POSTAL  CL_ADR_CP,  -- FPHQTTI.ANC_CODE_POSTAL  AS   CL_ADR_CP ,
 PCLI.ANC_LOCALITE  CL_ADR_VILLE, --FPHQTTI.ANC_LOCALITE  AS   CL_ADR_VILLE ,
 NULL  AS   CTR_RETAIL ,
-NULL AS   CIVILITE_SIGNATAIRE, --FPHQTCL.CL_IN_IDTITRE (CD avec jointure sur table LIB : FNMVTI0)  AS   CIVILITE_SIGNATAIRE ,   ------ ### ON ATTEND LES INFO 
-NULL AS   NOM_SIGNATAIRE , --FPHQTCL.CL_RE_NOM1  AS   NOM_SIGNATAIRE ,
-NULL AS   PRENOM_SIGNATAIRE , --FPHQTCL.CL_RE_PRNOM  AS   PRENOM_SIGNATAIRE ,
+FPHQTCL.CL_IN_IDTITRE   CIVILITE_SIGNATAIRE, --FPHQTCL.CL_IN_IDTITRE (CD avec jointure sur table LIB : FNMVTI0)  AS   CIVILITE_SIGNATAIRE ,   ------ ### ON ATTEND LES INFO 
+FPHQTCL.CL_RE_NOM1   NOM_SIGNATAIRE , --FPHQTCL.CL_RE_NOM1  AS   NOM_SIGNATAIRE ,
+FPHQTCL.CL_RE_PRNOM   PRENOM_SIGNATAIRE , --FPHQTCL.CL_RE_PRNOM  AS   PRENOM_SIGNATAIRE ,
 CLIE.TELEPHONE  TEL_CONTACT,  -- FPHQTTI.TELEPHONE  AS   TEL_CONTACT ,
 CLIE.EMAIL  EMAIL_SIGNATAIRE, -- FPHQTTI.EMAIL AS   EMAIL_SIGNATAIRE ,
 FPHQT91.DUREE_TOT_I  AS   DUREE_INI ,
@@ -160,28 +160,31 @@ NULL  AS   PDV_FOURNISSEUR_VILLE
 
 
 From Fph.Fphqt90 T90,
-     Fph.Fphqt91,
-    -- Fph.Fphqt92,
-     Fph.Fphqtti CLIE,
-     Fph.Fphqtti PCLI,
-     Fph.Fphqtti CHAU,
-     Fph.Fphqtti RCLI,
-     Fph.Fphqtvb,
-     Fph.Fphqtde,
-     Fph.Fphqtfv
+Fph.Fphqt91,
+-- Fph.Fphqt92,
+Fph.Fphqtti CLIE,
+Fph.Fphqtti PCLI,
+Fph.Fphqtti CHAU,
+Fph.Fphqtti RCLI,
+Fph.Fphqtvb,
+Fph.Fphqtde,
+Fph.Fphqtfv,
+fph.FPHQTCL
 Where T90.Ie_Affaire = Fph.Fphqt91.Ie_Affaire
-And CLIE.Ie_Affaire(+) = T90.Ie_Affaire AND CLIE.ROLE_TIERS(+) = 'CLIE'
-And PCLI.Ie_Affaire(+) = T90.Ie_Affaire AND PCLI.ROLE_TIERS(+) = 'PCLI'
-And CHAU.Ie_Affaire(+) = T90.Ie_Affaire AND CHAU.ROLE_TIERS(+) = 'CHAU'
-And RCLI.Ie_Affaire(+) = T90.Ie_Affaire AND RCLI.ROLE_TIERS(+) = 'RCLI'
+And CLIE.Ie_Affaire(+) = T90.Ie_Affaire AND CLIE.ROLE_TIERS(+) = 'CLIE' AND CLIE.DATE_TRAITEMENT(+) = T90.DATE_TRAITEMENT
+And PCLI.Ie_Affaire(+) = T90.Ie_Affaire AND PCLI.ROLE_TIERS(+) = 'PCLI' AND PCLI.DATE_TRAITEMENT(+) = T90.DATE_TRAITEMENT
+And CHAU.Ie_Affaire(+) = T90.Ie_Affaire AND CHAU.ROLE_TIERS(+) = 'CHAU' AND CHAU.DATE_TRAITEMENT(+) = T90.DATE_TRAITEMENT
+And RCLI.Ie_Affaire(+) = T90.Ie_Affaire AND RCLI.ROLE_TIERS(+) = 'RCLI' AND RCLI.DATE_TRAITEMENT(+) = T90.DATE_TRAITEMENT
 And Fph.Fphqtvb.Vb_Vin(+) = T90.Vin
 AND FPH.FPHQTVB.VB_FLAG_PERTINENT(+) = 'Y'
 And T90.Ie_Affaire = FPH.fphqtde.De_Num_Contrat(+)
 And Fph.Fphqtde.De_Fg_Version(+) = 1
 And Fph.Fphqtfv.Fv_Cd_Fam_Vehicule(+) = Fph.Fphqtde.Fv_Cd_Fam_Vehicule
-And Fph.Fphqtfv.Fv_Cdpays(+) = Fph.Fphqtde.Py_Cd_Pays    
-And T90.Py_Cd_Pays = 'ES';  -- AJOUT DU PAYS
-        
+And Fph.Fphqtfv.Fv_Cdpays(+) = Fph.Fphqtde.Py_Cd_Pays
+And T90.Py_Cd_Pays = 'ES' -- AJOUT DU PAYS
+AND FPH.FPHQTDE.CL_NUM_BCU = FPH.FPHQTCL.CL_NUM_BCU(+)
+AND FPH.FPHQTDE.PY_CD_PAYS = FPH.FPHQTCL.PY_CD_PAYS(+) ;
+
 
  
    BEGIN
@@ -661,9 +664,8 @@ PDV_FOURNISSEUR_VILLE  =  S_FDHT_ALIM.PDV_FOURNISSEUR_VILLE
   
    
   
-          CURSOR C_FDHT_EXP IS  
-
-select * from FPH.FPHQT_ES_CTT;  
+        CURSOR C_FDHT_EXP IS  
+        select * from FPH.FPHQT_ES_CTT;  
     
 
 		Begin
